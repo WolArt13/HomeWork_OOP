@@ -6,7 +6,6 @@ class Student:
         self.finished_courses = []
         self.courses_in_progress = []
         self.grades = {}
-        self.average_rating = float()
 
     def rate_lr(self, lecturer, course, grade):
         """Функция, реализующая возможность оценивать лектора"""
@@ -18,18 +17,24 @@ class Student:
         else:
             return 'Ошибка'
         
+    def average_rating(self):
+        """Функция для вычисления средней оценки по предметам"""
+        if self.grades:
+            grades_count = 0
+            for i in self.grades:
+                grades_count += len(self.grades[i])
+            average_rating = sum(map(sum, self.grades.values())) / grades_count
+            return average_rating
+        else: return 0
+
     def __str__(self):
         """Переопределение __str__ для вывода в print(student) в нужном формате"""
-        grades_count = 0
-        for i in self.grades:
-            grades_count += len(self.grades[i])
-        self.average_rating = sum(map(sum, self.grades.values())) / grades_count
+
         courses_in_progress_str = ", ".join(self.courses_in_progress)
         finished_courses_str = ", ".join(self.finished_courses)
-
         res = f'Имя: {self.name}\n' \
               f'Фамилия: {self.surname}\n' \
-              f'Средняя оценка за домашнее задание: {self.average_rating}\n' \
+              f'Средняя оценка за домашнее задание: {round(self.average_rating(), 2)}\n' \
               f'Курсы в процессе обучения: {courses_in_progress_str}\n' \
               f'Завершенные курсы: {finished_courses_str}'
         return res
@@ -40,10 +45,8 @@ class Student:
         if not isinstance(other, Student):
             print('Не верное сравнение')
             return
-        return self.average_rating < other.average_rating
-        
-
-        
+        return self.average_rating() < other.average_rating()
+       
 class Mentor:
     """Родительский класс Ментора"""
     def __init__(self, name, surname):
@@ -56,15 +59,20 @@ class Lecturer(Mentor):
     def __init__(self, name, surname):
         super().__init__(name, surname)
         self.grades = {}
-        self.average_rating = float()
+
+    def average_rating(self):
+        """Функция для опеределения среднего рейтинга"""
+        if self.grades:
+            grades_count = 0
+            for i in self.grades:
+                grades_count += len(self.grades[i])
+            average_rating = sum(map(sum, self.grades.values())) / grades_count
+            return average_rating
+        else: return 0
 
     def __str__(self):
         """Переопределение __str__ для вывода в print(lecturer) в нужном формате"""
-        grades_count = 0
-        for i in self.grades:
-            grades_count += len(self.grades[i])
-        self.average_rating = sum(map(sum, self.grades.values())) / grades_count
-        res = f'Имя: {self.name}\nФамилия: {self.surname}\nСредняя оценка за лекции: {self.average_rating}'
+        res = f'Имя: {self.name}\nФамилия: {self.surname}\nСредняя оценка за лекции: {round(self.average_rating(), 2)}'
         return res
     
     def __lt__(self, other):
@@ -73,7 +81,7 @@ class Lecturer(Mentor):
         if not isinstance(other, Lecturer):
             print('Не верное сравнение')
             return
-        return self.average_rating < other.average_rating
+        return self.average_rating() < other.average_rating()
 
 class Reviewer(Mentor):
     """Дочерний класс Проверяющего"""
@@ -142,7 +150,7 @@ student_1.rate_lr(lecturer_1, 'Python', 10)
 
 student_2.rate_lr(lecturer_2, 'Java', 9)
 student_2.rate_lr(lecturer_2, 'Java', 10)
-student_2.rate_lr(lecturer_2, 'Java', 8)
+student_2.rate_lr(lecturer_2, 'Java', 10)
 
 student_3.rate_lr(lecturer_3, 'Python', 3)
 student_3.rate_lr(lecturer_3, 'Python', 5)
@@ -182,4 +190,62 @@ print()
 # Результат сравнения лекторов по средним оценкам за лекции
 print(f'Результат сравнения лекторов (по средним оценкам за лекции): '
       f'{lecturer_1.name} {lecturer_1.surname} < {lecturer_2.name} {lecturer_2.surname} = {lecturer_1 > lecturer_2}')
+print()
+print()
+
+def students_average_rating(students_list, course_name):
+    """Функция для подсчета средней оценки за домашние задания по всем студентам в рамках конкретного курса
+    в качестве аргументов принимает список студентов и название курса"""
+    #Общий список оценок студентов по конкретному курсу
+    overall_grades = []
+    #Отбираем оценки по курсу
+    for student in students_list:
+        for course, grades in student.grades.items():
+            if course == course_name:
+                overall_grades += grades
+    #Находим средний балл среди оценок всех студентов
+    sum_all = 0
+    count_all = len(overall_grades)
+    for grade in overall_grades:
+        sum_all += grade
+    average_rating_for_all = sum_all / count_all
+    return average_rating_for_all
+
+def lecturers_average_rating(lecturers_list, course_name):
+    """Функция для подсчета средней оценки за лекции всех лекторов в рамках курса
+    в качестве аргумента принимает список лекторов и название курса"""
+    #Общий список оценок лекторов по конкретному курсу
+    overall_grades = []
+    #Отбираем оценки по курсу
+    for lecturer in lecturers_list:
+        for course, grades in lecturer.grades.items():
+            if course == course_name:
+                overall_grades += grades
+    #Находим средний балл среди оценок всех лекторов
+    sum_all = 0
+    count_all = len(overall_grades)
+    for grade in overall_grades:
+        sum_all += grade
+    average_rating_for_all = sum_all / count_all
+    return average_rating_for_all
+    
+#Создаем списки студентов
+students = [student_1, student_2, student_3]
+
+#Узнаем средний бал студентов в рамках конкретного курса
+print(f'Средний балл у студентов по курсу Python: {round(students_average_rating(students, 'Python'), 2)}')
+print()
+
+print(f'Средний балл у студентов по курсу Java: {round(students_average_rating(students, 'Java'), 2)}')
+print()
+print()
+
+#Создаем списки лекторов
+lecturers = [lecturer_1, lecturer_2, lecturer_3]
+
+#Узнаем средний бал лекторов в рамках конкретного курса
+print(f'Средний балл у лекторов по курсу Python: {round(lecturers_average_rating(lecturers, 'Python'), 2)}')
+print()
+
+print(f'Средний балл у лекторов по курсу Java: {round(lecturers_average_rating(lecturers, 'Java'), 2)}')
 print()
